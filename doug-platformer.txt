@@ -67,8 +67,10 @@ up [ ClimbL Player | no Terrain no Player ] -> [ | ClimbL Player ]
 left [ ClimbL Player | no Terrain no Player ] -> [ | Player ]
 [ ClimbL ] -> [ ]
 
-(Gravity - Doug falls if there is no terrain below him)
-down [ Player | no Terrain no Player ] -> [ | Player ]
+(Gravity - Doug falls if there is no terrain below him.
+ Late so it runs after the player's input movement resolves, otherwise
+ Doug is still on the ledge when this rule is checked.)
+late down [ Player | no Terrain no Player ] -> [ | Player ]
 
 
 ==============
