@@ -1,0 +1,75 @@
+title Doug Platformer
+author Doug
+run_rules_on_level_start
+
+========
+OBJECTS
+========
+
+Background
+BLUE
+
+Terrain
+BROWN DARKBROWN
+01010
+10101
+01010
+10101
+01010
+
+Doug
+WHITE BLACK PINK
+.000.
+.121.
+00000
+.000.
+.0.0.
+
+
+=======
+LEGEND
+=======
+
+. = Background
+s = Background
+t = Terrain
+d = Doug
+
+
+=======
+SOUNDS
+=======
+
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Terrain, Doug
+
+
+======
+RULES
+======
+
+(Doug only moves left and right - cancel vertical input)
+[ up Doug ] -> [ Doug ]
+[ down Doug ] -> [ Doug ]
+
+(Gravity - Doug falls if there is no terrain below him)
+down [ Doug | no Terrain no Doug ] -> [ | Doug ]
+
+
+==============
+WINCONDITIONS
+==============
+
+
+======
+LEVELS
+======
+
+ssss
+sdst
+tttt
