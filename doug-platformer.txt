@@ -12,8 +12,17 @@ BLUE
 Terrain
 BROWN
 
-Player
+Sand
+YELLOW
+
+PlayerR
 PINK
+
+PlayerL
+PINK
+
+Door
+DARKGRAY
 
 ClimbR
 TRANSPARENT
@@ -29,7 +38,13 @@ LEGEND
 . = Background
 s = Background
 t = Terrain
-d = Player
+n = Sand
+d = PlayerR
+{ = Door
+} = Door
+[ = Door
+] = Door
+Player = PlayerR or PlayerL
 
 
 =======
@@ -42,7 +57,8 @@ COLLISIONLAYERS
 ================
 
 Background
-Terrain, Player
+Door
+Terrain, Sand, PlayerR, PlayerL
 ClimbR
 ClimbL
 
@@ -51,37 +67,56 @@ ClimbL
 RULES
 ======
 
-(Doug only moves left and right - cancel vertical input)
+(Update facing when input direction reverses)
+[ left PlayerR ] -> [ left PlayerL ]
+[ right PlayerL ] -> [ right PlayerR ]
+
+(Cancel vertical input - Doug only moves horizontally)
 [ up Player ] -> [ Player ]
 [ down Player ] -> [ Player ]
 
-(Step up to the right: blocked by a one-tile ledge with sky above)
-right [ > Player | Terrain ] -> [ ClimbR Player | Terrain ]
-up [ ClimbR Player | no Terrain no Player ] -> [ | ClimbR Player ]
-right [ ClimbR Player | no Terrain no Player ] -> [ | Player ]
+(Step up to the right - climb a one-tile ledge)
+right [ > PlayerR | Terrain ] -> [ ClimbR PlayerR | Terrain ]
+up [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | ClimbR PlayerR ]
+right [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | PlayerR ]
 [ ClimbR ] -> [ ]
 
-(Step up to the left: blocked by a one-tile ledge with sky above)
-left [ > Player | Terrain ] -> [ ClimbL Player | Terrain ]
-up [ ClimbL Player | no Terrain no Player ] -> [ | ClimbL Player ]
-left [ ClimbL Player | no Terrain no Player ] -> [ | Player ]
+(Step up to the left - climb a one-tile ledge)
+left [ > PlayerL | Terrain ] -> [ ClimbL PlayerL | Terrain ]
+up [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | ClimbL PlayerL ]
+left [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | PlayerL ]
 [ ClimbL ] -> [ ]
 
-(Gravity - Doug falls if there is no terrain below him.
- Late so it runs after the player's input movement resolves, otherwise
- Doug is still on the ledge when this rule is checked.)
-late down [ Player | no Terrain no Player ] -> [ | Player ]
+(Dig: X turns the terrain in front of Doug into sand)
+right [ action PlayerR | Terrain ] -> [ PlayerR | Sand ]
+left [ action PlayerL | Terrain ] -> [ PlayerL | Sand ]
+
+(Gravity for Doug)
+late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]
+
+(Gravity for sand)
+late down [ Sand | no Terrain no Player no Sand ] -> [ | Sand ]
 
 
 ==============
 WINCONDITIONS
 ==============
 
+some Player on Door
+
 
 ======
 LEVELS
 ======
 
-ssss
-sdts
-tttt
+(Level 1 - walk, step up over a ledge, reach the door)
+ssssss
+sdtss}
+tttttt
+
+(Level 2 - low ceiling blocks the climb, must dig through)
+ssssss
+sttsss
+sdtt.s
+sssss}
+tttttt
