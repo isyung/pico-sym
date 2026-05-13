@@ -17,7 +17,7 @@ BROWN DARKBROWN
 10101
 01010
 
-Doug
+Player
 WHITE BLACK PINK
 .000.
 .121.
@@ -33,8 +33,7 @@ LEGEND
 . = Background
 s = Background
 t = Terrain
-d = Doug
-Player = Doug
+d = Player
 
 
 =======
@@ -47,7 +46,7 @@ COLLISIONLAYERS
 ================
 
 Background
-Terrain, Doug
+Terrain, Player
 
 
 ======
@@ -55,11 +54,11 @@ RULES
 ======
 
 (Doug only moves left and right - cancel vertical input)
-[ up Doug ] -> [ Doug ]
-[ down Doug ] -> [ Doug ]
+[ up Player ] -> [ Player ]
+[ down Player ] -> [ Player ]
 
 (Gravity - Doug falls if there is no terrain below him)
-down [ Doug | no Terrain no Doug ] -> [ | Doug ]
+down [ Player | no Terrain no Player ] -> [ | Player ]
 
 
 ==============
