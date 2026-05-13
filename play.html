@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doug Platformer</title>
+<style>
+body {
+  background-color: black;
+  font-family: "Courier New", Courier, monospace;
+  touch-action: none;
+}
+#gameCanvas {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  border: 0;
+  background-color: black;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+h1 {
+  color: lightblue;
+  font-weight: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 2em;
+  margin: 0.5em 0;
+}
+a { color: lightblue; }
+.title {
+  text-align: center;
+  font-size: 100%;
+  color: gray;
+  position: absolute;
+  left: 10%; right: 10%; top: 0;
+  height: 3em;
+}
+.footer {
+  text-align: center;
+  color: white;
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3em;
+}
+.gameContainer {
+  position: absolute;
+  left: 0; right: 0;
+  top: 3.5em; bottom: 3em;
+  touch-action: none;
+}
+</style>
+</head>
+<body>
+<div class="title"><h1 id="gametitle">Doug Platformer</h1></div>
+<div class="gameContainer" id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+</div>
+<div class="footer"><span id="errormessage"></span></div>
+
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/storagewrapper.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/bitvec.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/level.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/languageConstants.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/globalVariables.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/debug_off.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/font.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/rng.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/riffwave.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/sfxr.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/codemirror/stringstream.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/colors.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/graphics.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/engine.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/parser.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/compiler.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/inputoutput.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/increpare/PuzzleScript@master/src/js/mobile.js"></script>
+
+<script>
+function displayError(message) {
+  document.getElementById("errormessage").innerHTML = "ERROR " + message + "<br>";
+}
+
+window.addEventListener("load", function () {
+  fetch("./doug-platformer.txt?ts=" + Date.now())
+    .then(function (r) {
+      if (!r.ok) throw new Error("Could not fetch game source (" + r.status + ")");
+      return r.text();
+    })
+    .then(function (code) {
+      compile(["restart"], code);
+      if (typeof state !== "undefined" && state.metadata && state.metadata.title) {
+        document.getElementById("gametitle").textContent = state.metadata.title;
+        window.document.title = state.metadata.title;
+      }
+    })
+    .catch(function (e) { displayError(e.message); });
+});
+</script>
+</body>
+</html>
