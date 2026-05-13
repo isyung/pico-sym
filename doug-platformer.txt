@@ -10,20 +10,10 @@ Background
 BLUE
 
 Terrain
-BROWN DARKBROWN
-01010
-10101
-01010
-10101
-01010
+BROWN
 
 Player
-WHITE BLACK PINK
-.000.
-.121.
-00000
-.000.
-.0.0.
+PINK
 
 
 =======
