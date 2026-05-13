@@ -1,4 +1,4 @@
-title Doug Platformer
+title sandbox
 author Doug
 run_rules_on_level_start
 
@@ -14,6 +14,12 @@ BROWN
 
 Player
 PINK
+
+ClimbR
+TRANSPARENT
+
+ClimbL
+TRANSPARENT
 
 
 =======
@@ -37,6 +43,8 @@ COLLISIONLAYERS
 
 Background
 Terrain, Player
+ClimbR
+ClimbL
 
 
 ======
@@ -46,6 +54,18 @@ RULES
 (Doug only moves left and right - cancel vertical input)
 [ up Player ] -> [ Player ]
 [ down Player ] -> [ Player ]
+
+(Step up to the right: blocked by a one-tile ledge with sky above)
+right [ > Player | Terrain ] -> [ ClimbR Player | Terrain ]
+up [ ClimbR Player | no Terrain no Player ] -> [ | ClimbR Player ]
+right [ ClimbR Player | no Terrain no Player ] -> [ | Player ]
+[ ClimbR ] -> [ ]
+
+(Step up to the left: blocked by a one-tile ledge with sky above)
+left [ > Player | Terrain ] -> [ ClimbL Player | Terrain ]
+up [ ClimbL Player | no Terrain no Player ] -> [ | ClimbL Player ]
+left [ ClimbL Player | no Terrain no Player ] -> [ | Player ]
+[ ClimbL ] -> [ ]
 
 (Gravity - Doug falls if there is no terrain below him)
 down [ Player | no Terrain no Player ] -> [ | Player ]
@@ -61,5 +81,5 @@ LEVELS
 ======
 
 ssss
-sdst
+sdts
 tttt
