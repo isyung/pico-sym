@@ -2,6 +2,7 @@ title sandbox
 author Doug
 run_rules_on_level_start
 key_repeat_interval 0.25
+again_interval 0.08
 
 ========
 OBJECTS
@@ -93,6 +94,21 @@ TRANSPARENT
 ClimbL
 TRANSPARENT
 
+DigT3
+TRANSPARENT
+
+DigT2
+TRANSPARENT
+
+DigT1
+TRANSPARENT
+
+DigT0
+TRANSPARENT
+
+DigLock
+TRANSPARENT
+
 
 =======
 LEGEND
@@ -127,6 +143,8 @@ Door
 Terrain, Sand, PlayerR, PlayerL, PlayerR_Dig, PlayerL_Dig
 ClimbR
 ClimbL
+DigT3, DigT2, DigT1, DigT0
+DigLock
 
 
 ======
@@ -173,16 +191,30 @@ left [ ClimbL PlayerL | Sand | no Terrain no Sand no Player ] -> [ | PlayerL | S
 
 (Dig: action button. Terrain or Sand in front becomes Background;
  a Sand drops into the empty cell behind Doug. Doug switches into
- the dig pose. Tapping action again while already in dig pose
- digs the next tile and stays in dig pose.)
-right [ no Terrain no Sand no Player | action RightFacing | Diggable ] -> [ Sand | PlayerR_Dig | ]
-left  [ no Terrain no Sand no Player | action LeftFacing  | Diggable ] -> [ Sand | PlayerL_Dig | ]
+ the dig pose and a DigT3 marker starts the 3-frame animation.
+ 'again' on this rule queues another rule pass after again_interval,
+ which the engine performs with input blocked.)
+right [ no Terrain no Sand no Player | action RightFacing | Diggable ] -> [ Sand | PlayerR_Dig DigT3 | ] again
+left  [ no Terrain no Sand no Player | action LeftFacing  | Diggable ] -> [ Sand | PlayerL_Dig DigT3 | ] again
+
+(Dig animation: advance one tick per turn. DigLock blocks subsequent
+ ticks from cascading within the same turn; the late rule below
+ strips it at end-of-turn so the next 'again' pass can advance.)
+[ DigT3 ] -> [ DigT2 DigLock ] again
+[ DigT2 no DigLock ] -> [ DigT1 DigLock ] again
+[ DigT1 no DigLock ] -> [ DigT0 DigLock ] again
+[ DigT0 no DigLock PlayerR_Dig ] -> [ PlayerR ]
+[ DigT0 no DigLock PlayerL_Dig ] -> [ PlayerL ]
 
 (Gravity for Doug)
 late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]
 
 (Gravity for sand)
 late down [ Sand | no Terrain no Player no Sand ] -> [ | Sand ]
+
+(Clear the dig-animation lock at end of turn so the next 'again'
+ pass can advance the counter by one step.)
+late [ DigLock ] -> [ ]
 
 
 ==============
