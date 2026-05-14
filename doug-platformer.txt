@@ -54,6 +54,28 @@ PINK RED WHITE BLACK
 00000000
 .000000.
 
+PlayerR_Dig
+PINK RED WHITE BLACK
+.000000.
+00000000
+00001010
+00001010
+00000000
+00001111
+00000000
+.000000.
+
+PlayerL_Dig
+PINK RED WHITE BLACK
+.000000.
+00000000
+01010000
+01010000
+00000000
+11110000
+00000000
+.000000.
+
 Door
 DARKGRAY LIGHTGRAY
 01111110
@@ -84,9 +106,11 @@ d = PlayerR
 } = Door
 [ = Door
 ] = Door
-Player = PlayerR or PlayerL
+Player = PlayerR or PlayerL or PlayerR_Dig or PlayerL_Dig
 Diggable = Terrain or Sand
 Solid = Terrain or Sand
+RightFacing = PlayerR or PlayerR_Dig
+LeftFacing = PlayerL or PlayerL_Dig
 
 
 =======
@@ -100,7 +124,7 @@ COLLISIONLAYERS
 
 Background
 Door
-Terrain, Sand, PlayerR, PlayerL
+Terrain, Sand, PlayerR, PlayerL, PlayerR_Dig, PlayerL_Dig
 ClimbR
 ClimbL
 
@@ -109,7 +133,18 @@ ClimbL
 RULES
 ======
 
-(Update facing when input direction reverses)
+(Revert dig pose on any directional input; preserve walk direction.
+ Action while in dig pose stays in dig pose - handled in the dig rule.)
+[ right PlayerR_Dig ] -> [ right PlayerR ]
+[ left  PlayerR_Dig ] -> [ left  PlayerL ]
+[ up    PlayerR_Dig ] -> [ PlayerR ]
+[ down  PlayerR_Dig ] -> [ PlayerR ]
+[ right PlayerL_Dig ] -> [ right PlayerR ]
+[ left  PlayerL_Dig ] -> [ left  PlayerL ]
+[ up    PlayerL_Dig ] -> [ PlayerL ]
+[ down  PlayerL_Dig ] -> [ PlayerL ]
+
+(Update facing when input direction reverses on the normal pose)
 [ left PlayerR ] -> [ left PlayerL ]
 [ right PlayerL ] -> [ right PlayerR ]
 
@@ -122,8 +157,7 @@ horizontal [ > Player | Sand ] -> [ > Player | > Sand ]
 
 (Step up to the right - climb a one-tile ledge of Terrain or Sand.
  If the cell above the wall is Sand AND the cell beyond it is clear,
- Doug shoves that sand sideways and slides into its old position -
- the noise2 sand-step-up traversal of a 2-stack obstacle.)
+ Doug shoves that sand sideways and slides into its old position.)
 right [ > PlayerR | Solid ] -> [ ClimbR PlayerR | Solid ]
 up [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | ClimbR PlayerR ]
 right [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | PlayerR ]
@@ -138,11 +172,11 @@ left [ ClimbL PlayerL | Sand | no Terrain no Sand no Player ] -> [ | PlayerL | S
 [ ClimbL ] -> [ ]
 
 (Dig: action button. Terrain or Sand in front becomes Background;
- a Sand drops into the empty cell behind Doug. Requires empty behind.
- We check absence of solids instead of asserting Background, so the
- rule never removes Background from the dig-behind cell.)
-right [ no Terrain no Sand no Player | action PlayerR | Diggable ] -> [ Sand | PlayerR | ]
-left  [ no Terrain no Sand no Player | action PlayerL | Diggable ] -> [ Sand | PlayerL | ]
+ a Sand drops into the empty cell behind Doug. Doug switches into
+ the dig pose. Tapping action again while already in dig pose
+ digs the next tile and stays in dig pose.)
+right [ no Terrain no Sand no Player | action RightFacing | Diggable ] -> [ Sand | PlayerR_Dig | ]
+left  [ no Terrain no Sand no Player | action LeftFacing  | Diggable ] -> [ Sand | PlayerL_Dig | ]
 
 (Gravity for Doug)
 late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]
@@ -162,14 +196,27 @@ some Player on Door
 LEVELS
 ======
 
-(Level 1 - walk, step up over a ledge, reach the door)
+(Level 1 - walk + step-up over a one-tile ledge)
 ......
 .dt..}
 tttttt
 
-(Level 2 - low ceiling blocks the climb, must dig through)
-......
-.tt...
-.dtt..
-.....}
+(Level 2 - low ceiling blocks the climb; dig through the wall)
+..t...
+.dt..}
+tttttt
+
+(Level 3 - top of the world: no headroom above Doug, so step-up
+ is impossible. Force dig at both walls.)
+.dt.t}
+tttttt
+
+(Level 4 - dig the first wall, then climb the second one)
+..t...
+.dt.t}
+tttttt
+
+(Level 5 - two ceilinged walls, dig both)
+..t.t.
+.dt.t}
 tttttt
