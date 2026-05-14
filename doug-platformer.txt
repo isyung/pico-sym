@@ -77,7 +77,6 @@ LEGEND
 =======
 
 . = Background
-s = Background
 t = Terrain
 n = Sand
 d = PlayerR
@@ -158,13 +157,13 @@ LEVELS
 ======
 
 (Level 1 - walk, step up over a ledge, reach the door)
-ssssss
-sdtss}
+......
+.dt..}
 tttttt
 
 (Level 2 - low ceiling blocks the climb, must dig through)
-ssssss
-sttsss
-sdtt.s
-sssss}
+......
+.tt...
+.dtt..
+.....}
 tttttt
