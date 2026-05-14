@@ -256,8 +256,8 @@ left  [ no Terrain no Sand no Player | action LeftFacing  | Diggable ] -> [ Sand
  nothing diggable in front AND no fresh sand behind. The 'no Sand
  behind' guard silences the spurious turn-around that auto-repeat
  used to trigger right after a successful dig.)
-right [ no Sand | action PlayerR | no Diggable ] -> [ PlayerL RightFlag BlockT3 | ] again
-left  [ no Sand | action PlayerL | no Diggable ] -> [ PlayerR LeftFlag BlockT3 | ] again
+right [ no Sand | action PlayerR | no Diggable ] -> [ | PlayerL RightFlag BlockT3 | ] again
+left  [ no Sand | action PlayerL | no Diggable ] -> [ | PlayerR LeftFlag BlockT3 | ] again
 
 (Dig animation: advance one tick per turn. DigLock blocks subsequent
  ticks from cascading within the same turn; the late rule below
