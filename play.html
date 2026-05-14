@@ -74,9 +74,9 @@ a { color: lightblue; }
   top: 3.5em; bottom: 3em;
   touch-action: none;
 }
-#resetBtn {
+#resetBtn,
+#copyErrBtn {
   position: absolute;
-  right: 0.5em; bottom: 0.5em;
   width: 2.5em; height: 2.5em;
   border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.4);
@@ -88,6 +88,9 @@ a { color: lightblue; }
   z-index: 10;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
+#resetBtn   { right: 0.5em; bottom: 0.5em; }
+#copyErrBtn { right: 3.5em; bottom: 0.5em; display: none; }
+#copyErrBtn.show { display: block; }
 </style>
 </head>
 <body>
@@ -97,6 +100,7 @@ a { color: lightblue; }
 </div>
 <div class="footer"><span id="errormessage"></span></div>
 <button id="resetBtn" title="Clear saved progress and reload">&#x21BA;</button>
+<button id="copyErrBtn" title="Copy error text to clipboard">&#x1F4CB;</button>
 
 <script src="./vendor/puzzlescript/js/storagewrapper.js"></script>
 <script src="./vendor/puzzlescript/js/bitvec.js"></script>
@@ -120,6 +124,38 @@ a { color: lightblue; }
 <script>
 function displayError(message) {
   document.getElementById("errormessage").innerHTML = "ERROR " + message + "<br>";
+  document.getElementById("copyErrBtn").classList.add("show");
+}
+
+function copyErrorText() {
+  var btn = document.getElementById("copyErrBtn");
+  var el = document.getElementById("errormessage");
+  if (!el) return;
+  // Convert <br> to newlines, strip remaining tags, copy.
+  var text = el.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+  var done = function () {
+    var orig = btn.innerHTML;
+    btn.innerHTML = "&#x2713;";
+    setTimeout(function () { btn.innerHTML = orig; }, 900);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, function () {
+      fallbackCopy(text); done();
+    });
+  } else {
+    fallbackCopy(text); done();
+  }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) { /* ignore */ }
+  document.body.removeChild(ta);
 }
 
 function hardReset(reload) {
@@ -143,6 +179,20 @@ window.addEventListener("load", function () {
   document.getElementById("resetBtn").addEventListener("click", function () {
     hardReset(true);
   });
+  document.getElementById("copyErrBtn").addEventListener("click", copyErrorText);
+
+  // Show the copy-error button whenever the errormessage gets any text;
+  // hide it again if the text is cleared.
+  var errEl = document.getElementById("errormessage");
+  var copyBtn = document.getElementById("copyErrBtn");
+  var watcher = new MutationObserver(function () {
+    if (errEl.textContent.trim().length > 0) {
+      copyBtn.classList.add("show");
+    } else {
+      copyBtn.classList.remove("show");
+    }
+  });
+  watcher.observe(errEl, { childList: true, subtree: true, characterData: true });
 
   fetch("./doug-platformer.txt?ts=" + Date.now())
     .then(function (r) {
