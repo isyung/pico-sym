@@ -196,27 +196,32 @@ some Player on Door
 LEVELS
 ======
 
-(Level 1 - walk + step-up over a one-tile ledge)
+message Level 1 - walk and step up
+
 ......
 .dt..}
 tttttt
 
-(Level 2 - low ceiling blocks the climb; dig through the wall)
+message Level 2 - dig the wall
+
 ..t...
 .dt..}
 tttttt
 
-(Level 3 - top of the world: no headroom above Doug, so step-up
- is impossible. Force dig at both walls.)
-.dt.t}
+message Level 3 - dig both ceilinged walls
+
+..tt..
+.dtt.}
 tttttt
 
-(Level 4 - dig the first wall, then climb the second one)
-..t...
-.dt.t}
+message Level 4 - dig first then climb second
+
+t..n..
+tdtt.}
 tttttt
 
-(Level 5 - two ceilinged walls, dig both)
-..t.t.
-.dt.t}
+message Level 5 - top exit
+
+..t..}
+.dt.t.
 tttttt
