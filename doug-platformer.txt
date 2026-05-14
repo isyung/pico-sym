@@ -360,7 +360,7 @@ ttttttt
 
 message 8: anthill
 
-..}..n
+n.}..n
 n.n..n
 n.n..n
 nd.nnn
