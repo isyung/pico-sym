@@ -55,25 +55,14 @@ PINK RED WHITE BLACK
 00000000
 .000000.
 
-PlayerR_Dig
+Smear
 PINK RED WHITE BLACK
 .000000.
 00000000
+01111110
+01111110
 00000000
-00011011
-00000000
-00001110
-00000000
-.000000.
-
-PlayerL_Dig
-PINK RED WHITE BLACK
-.000000.
-00000000
-00000000
-11011000
-00000000
-01110000
+01111110
 00000000
 .000000.
 
@@ -100,34 +89,22 @@ TRANSPARENT
 ClimbedL
 TRANSPARENT
 
-DigT3
+AnimT4
 TRANSPARENT
 
-DigT2
+AnimT3
 TRANSPARENT
 
-DigT1
+AnimT2
 TRANSPARENT
 
-DigT0
+AnimT1
 TRANSPARENT
 
-DigLock
+AnimT0
 TRANSPARENT
 
-BlockT3
-TRANSPARENT
-
-BlockT2
-TRANSPARENT
-
-BlockT1
-TRANSPARENT
-
-BlockT0
-TRANSPARENT
-
-BlockLock
+AnimLock
 TRANSPARENT
 
 RightFlag
@@ -156,11 +133,10 @@ n = Sand
 d = PlayerR
 { = Door
 } = Door
-Player = PlayerR or PlayerL or PlayerR_Dig or PlayerL_Dig
+Player = PlayerR or PlayerL or Smear
 Diggable = Terrain or Sand
 Solid = Terrain or Sand
-RightFacing = PlayerR or PlayerR_Dig
-LeftFacing = PlayerL or PlayerL_Dig
+AnimTick = AnimT4 or AnimT3 or AnimT2 or AnimT1 or AnimT0
 
 
 =======
@@ -174,15 +150,13 @@ COLLISIONLAYERS
 
 Background
 Door
-Terrain, Sand, PlayerR, PlayerL, PlayerR_Dig, PlayerL_Dig
+Terrain, Sand, PlayerR, PlayerL, Smear
 ClimbR
 ClimbL
 ClimbedR
 ClimbedL
-DigT3, DigT2, DigT1, DigT0
-DigLock
-BlockT3, BlockT2, BlockT1, BlockT0
-BlockLock
+AnimT4, AnimT3, AnimT2, AnimT1, AnimT0
+AnimLock
 RightFlag, LeftFlag
 TryR, TryL
 Pushed
@@ -191,17 +165,6 @@ Pushed
 ======
 RULES
 ======
-
-(Revert dig pose on any directional input; preserve walk direction.
- Action while in dig pose stays in dig pose - handled in the dig rule.)
-[ right PlayerR_Dig ] -> [ right PlayerR ]
-[ left  PlayerR_Dig ] -> [ left  PlayerL ]
-[ up    PlayerR_Dig ] -> [ PlayerR ]
-[ down  PlayerR_Dig ] -> [ PlayerR ]
-[ right PlayerL_Dig ] -> [ right PlayerR ]
-[ left  PlayerL_Dig ] -> [ left  PlayerL ]
-[ up    PlayerL_Dig ] -> [ PlayerL ]
-[ down  PlayerL_Dig ] -> [ PlayerL ]
 
 (Update facing when input direction reverses on the normal pose)
 [ left PlayerR ] -> [ left PlayerL ]
@@ -247,59 +210,59 @@ left [ ClimbedL PlayerL | Sand | no Terrain no Sand no Player ] -> [ | PlayerL |
 [ ClimbL ] -> [ ]
 [ ClimbedL ] -> [ ]
 
-(Dig: action button. Terrain or Sand in front becomes Background;
- a Sand drops into the empty cell behind Doug. Doug switches into
- the dig pose and a DigT3 marker starts the 3-frame animation.)
-right [ no Terrain no Sand no Player | action RightFacing | Diggable ] -> [ Sand | PlayerR_Dig DigT3 | ] again
-left  [ no Terrain no Sand no Player | action LeftFacing  | Diggable ] -> [ Sand | PlayerL_Dig DigT3 | ] again
+(Triggers - all three create the unified Smear-Opposite-Smear
+ animation. Each places: Smear sprite + AnimT4 starter marker +
+ RightFlag/LeftFlag remembering Doug's original facing.)
 
-(Dig blocked: action pressed but dig didn't fire. Show 3 frames of
- the opposite-facing sprite ONLY when the dig is clearly hopeless -
- nothing diggable in front AND no fresh sand behind. The 'no Sand
- behind' guard silences the spurious turn-around that auto-repeat
- used to trigger right after a successful dig.)
-right [ no Sand | action PlayerR | no Diggable ] -> [ | PlayerL RightFlag BlockT3 | ] again
-left  [ no Sand | action PlayerL | no Diggable ] -> [ | PlayerR LeftFlag BlockT3 | ] again
+(Dig success: action + Diggable in front + empty behind. Terrain
+ or Sand in front clears; Sand drops into the empty cell behind.)
+right [ no Terrain no Sand no Player | action PlayerR | Diggable ] -> [ Sand | Smear AnimT4 RightFlag | ] again
+left  [ no Terrain no Sand no Player | action PlayerL | Diggable ] -> [ Sand | Smear AnimT4 LeftFlag | ] again
 
-(Dig animation: advance one tick per turn. DigLock blocks subsequent
- ticks from cascading within the same turn; the late rule below
- strips it at end-of-turn so the next 'again' pass can advance.)
-[ DigT3 ] -> [ DigT2 DigLock ] again
-[ DigT2 no DigLock ] -> [ DigT1 DigLock ] again
-[ DigT1 no DigLock ] -> [ DigT0 DigLock ] again
-[ DigT0 no DigLock PlayerR_Dig ] -> [ PlayerR ]
-[ DigT0 no DigLock PlayerL_Dig ] -> [ PlayerL ]
+(Dig blocked: action pressed but nothing diggable in front and no
+ fresh sand behind. 'no Sand' silences the auto-repeat false-positive
+ right after a successful dig.)
+right [ no Sand | action PlayerR | no Diggable ] -> [ | Smear AnimT4 RightFlag | ] again
+left  [ no Sand | action PlayerL | no Diggable ] -> [ | Smear AnimT4 LeftFlag | ] again
 
-(Block 'no dig' animation cascade - same shape as DigT, separate
- markers. RightFlag/LeftFlag remember the original facing so the
- revert can restore it.)
-[ BlockT3 ] -> [ BlockT2 BlockLock ] again
-[ BlockT2 no BlockLock ] -> [ BlockT1 BlockLock ] again
-[ BlockT1 no BlockLock ] -> [ BlockT0 BlockLock ] again
-[ BlockT0 no BlockLock RightFlag PlayerL ] -> [ PlayerR ]
-[ BlockT0 no BlockLock LeftFlag PlayerR ] -> [ PlayerL ]
+(Animation cascade - 4 visible frames then revert:
+   T4 -> T3 : kick (sprite stays Smear, render frame 1 = Smear)
+   T3 -> T2 : Smear becomes opposite facing (render frame 2 = Opp)
+   T2 -> T1 : keep opposite (render frame 3 = Opp)
+   T1 -> T0 : opposite becomes Smear (render frame 4 = Smear)
+   T0 -> revert to original facing (no again - chain ends)
+ AnimLock prevents the chain from cascading within a single turn;
+ the late rule strips it so the next 'again' pass advances one step.)
+[ AnimT4 no AnimLock ] -> [ AnimT3 AnimLock ] again
+[ AnimT3 Smear RightFlag no AnimLock ] -> [ AnimT2 PlayerL RightFlag AnimLock ] again
+[ AnimT3 Smear LeftFlag  no AnimLock ] -> [ AnimT2 PlayerR LeftFlag  AnimLock ] again
+[ AnimT2 no AnimLock ] -> [ AnimT1 AnimLock ] again
+[ AnimT1 PlayerL RightFlag no AnimLock ] -> [ AnimT0 Smear RightFlag AnimLock ] again
+[ AnimT1 PlayerR LeftFlag  no AnimLock ] -> [ AnimT0 Smear LeftFlag  AnimLock ] again
+[ AnimT0 Smear RightFlag no AnimLock ] -> [ PlayerR ]
+[ AnimT0 Smear LeftFlag  no AnimLock ] -> [ PlayerL ]
 
-(Gravity for Doug)
-late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]
+(Gravity for Doug - skipped while an animation is running so the
+ sprite doesn't drift away from its accompanying AnimT* marker.)
+late down [ Player no AnimTick | no Terrain no Player no Sand ] -> [ | Player ]
 
 (Gravity for sand)
 late down [ Sand | no Terrain no Player no Sand ] -> [ | Sand ]
 
 (Failed walk: TryR/TryL marker still on Doug means he did not
- move - fire the same opposite-facing animation as a failed dig.
+ move - fire the same Smear animation as a failed dig.
  Fires AFTER gravity so a walk-off-ledge counts as success.)
-late [ TryR PlayerR ] -> [ PlayerL RightFlag BlockT3 ] again
-late [ TryL PlayerL ] -> [ PlayerR LeftFlag BlockT3 ] again
+late [ TryR PlayerR ] -> [ Smear AnimT4 RightFlag ] again
+late [ TryL PlayerL ] -> [ Smear AnimT4 LeftFlag ] again
 
 (Clean up orphan walk-intent markers - Doug moved past them.)
 late [ TryR ] -> [ ]
 late [ TryL ] -> [ ]
 late [ Pushed ] -> [ ]
 
-(Clear animation locks at end of turn so the next 'again'
+(Clear the animation lock at end of turn so the next 'again'
  pass can advance the counter by one step.)
-late [ DigLock ] -> [ ]
-late [ BlockLock ] -> [ ]
+late [ AnimLock ] -> [ ]
 
 
 ==============
