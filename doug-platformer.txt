@@ -348,16 +348,16 @@ tttttt
 
 message 8: mountain
 
-..}...
-..t...
-..t..t
-.dt.tt
-tttttt
+..}....
+..t....
+..t..tt
+.dt.ttt
+ttttttt
 
-message 9: hold to undo
+message 9: anthill
 
 ..}...
 ..n..n
-..t..t
-.dt.tt
+n.n..n
+ndn.nn
 tttttt
