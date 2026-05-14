@@ -325,10 +325,10 @@ message 2: tap to dig
 .dt..}
 tttttt
 
-message 3: diig
+message 3: push
 
-..tt..
-.dtt.}
+......
+.dn..}
 tttttt
 
 message 4: pile
@@ -350,14 +350,7 @@ message 6: mole hill
 .dt.tt
 tttttt
 
-message 7: mtn
-
-..}...
-..t..t
-.dt.tt
-tttttt
-
-message 8: mountain
+message 7: mountain
 
 ..}....
 ..t....
@@ -365,10 +358,16 @@ message 8: mountain
 .dt.ttt
 ttttttt
 
-message 9: anthill
+message 8: anthill
 
-..}...
+..}..n
 ..n..n
 n.n..n
 ndn.nn
 tttttt
+
+message 9: sand
+
+n.t..tt
+nd..n.}
+ttttttt
