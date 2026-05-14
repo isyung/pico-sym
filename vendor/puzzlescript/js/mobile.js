@@ -66,6 +66,9 @@ Mobile.debugDot = function (event) {
     var SWIPE_DISTANCE = 50;
     // Time in milliseconds to complete the gesture.
     var SWIPE_TIMEOUT = 1000;
+    // Pixels of movement that disqualify a touch from counting as a tap.
+    // Set low so any noticeable finger slide cancels the tap.
+    var TAP_MOVE_THRESHOLD = 6;
     // Time in milliseconds to repeat a motion if still holding down,
     // ... and not specified in state.metadata.key_repeat_interval.
     var DEFAULT_REPEAT_INTERVAL = 150;
@@ -144,6 +147,7 @@ Mobile.debugDot = function (event) {
 
         this.mayBeSwiping = true;
         this.gestured = false;
+        this.movedSinceStart = false;
 
         this.swipeDirection = undefined;
         this.swipeDistance = 0;
@@ -162,7 +166,7 @@ Mobile.debugDot = function (event) {
             // canceled the touchstart event.
             return;
         }
-        if (!this.gestured) {
+        if (!this.gestured && !this.movedSinceStart) {
             if (event.touches.length === 0 && event.target.id !== "unMuteButton" && event.target.id !== "muteButton") {
                 this.handleTap();
             }
@@ -182,6 +186,15 @@ Mobile.debugDot = function (event) {
         }
         if (levelEditorOpened) {
             return;
+        }
+        if (!this.movedSinceStart && event.touches.length > 0) {
+            var curX = event.touches[0].clientX;
+            var curY = event.touches[0].clientY;
+            var dxAbs = Math.abs(curX - this.firstPos.x);
+            var dyAbs = Math.abs(curY - this.firstPos.y);
+            if (Math.max(dxAbs, dyAbs) > TAP_MOVE_THRESHOLD) {
+                this.movedSinceStart = true;
+            }
         }
         if (this.isSuccessfulSwipe()) {
             this.handleSwipe(this.swipeDirection, this.touchCount);
