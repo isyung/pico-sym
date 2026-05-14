@@ -290,13 +290,14 @@ tttttt
 
 message 4: pile
 
-t.n.}.
-tdtt..
+..n..}
+.dtt..
 tttttt
 
 message 5: stair
 
 ..t..}
+...t.t
 .dt.t.
 tttttt
 
