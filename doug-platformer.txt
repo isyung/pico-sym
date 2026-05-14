@@ -109,6 +109,27 @@ TRANSPARENT
 DigLock
 TRANSPARENT
 
+BlockT3
+TRANSPARENT
+
+BlockT2
+TRANSPARENT
+
+BlockT1
+TRANSPARENT
+
+BlockT0
+TRANSPARENT
+
+BlockLock
+TRANSPARENT
+
+RightFlag
+TRANSPARENT
+
+LeftFlag
+TRANSPARENT
+
 
 =======
 LEGEND
@@ -145,6 +166,9 @@ ClimbR
 ClimbL
 DigT3, DigT2, DigT1, DigT0
 DigLock
+BlockT3, BlockT2, BlockT1, BlockT0
+BlockLock
+RightFlag, LeftFlag
 
 
 ======
@@ -191,11 +215,15 @@ left [ ClimbL PlayerL | Sand | no Terrain no Sand no Player ] -> [ | PlayerL | S
 
 (Dig: action button. Terrain or Sand in front becomes Background;
  a Sand drops into the empty cell behind Doug. Doug switches into
- the dig pose and a DigT3 marker starts the 3-frame animation.
- 'again' on this rule queues another rule pass after again_interval,
- which the engine performs with input blocked.)
+ the dig pose and a DigT3 marker starts the 3-frame animation.)
 right [ no Terrain no Sand no Player | action RightFacing | Diggable ] -> [ Sand | PlayerR_Dig DigT3 | ] again
 left  [ no Terrain no Sand no Player | action LeftFacing  | Diggable ] -> [ Sand | PlayerL_Dig DigT3 | ] again
+
+(Dig blocked: action pressed but dig didn't fire (action still on
+ Player). Show 3 frames of the opposite-facing sprite as feedback,
+ then revert to the original facing.)
+[ action PlayerR ] -> [ PlayerL RightFlag BlockT3 ] again
+[ action PlayerL ] -> [ PlayerR LeftFlag BlockT3 ] again
 
 (Dig animation: advance one tick per turn. DigLock blocks subsequent
  ticks from cascading within the same turn; the late rule below
@@ -206,15 +234,25 @@ left  [ no Terrain no Sand no Player | action LeftFacing  | Diggable ] -> [ Sand
 [ DigT0 no DigLock PlayerR_Dig ] -> [ PlayerR ]
 [ DigT0 no DigLock PlayerL_Dig ] -> [ PlayerL ]
 
+(Block 'no dig' animation cascade - same shape as DigT, separate
+ markers. RightFlag/LeftFlag remember the original facing so the
+ revert can restore it.)
+[ BlockT3 ] -> [ BlockT2 BlockLock ] again
+[ BlockT2 no BlockLock ] -> [ BlockT1 BlockLock ] again
+[ BlockT1 no BlockLock ] -> [ BlockT0 BlockLock ] again
+[ BlockT0 no BlockLock RightFlag PlayerL ] -> [ PlayerR ]
+[ BlockT0 no BlockLock LeftFlag PlayerR ] -> [ PlayerL ]
+
 (Gravity for Doug)
 late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]
 
 (Gravity for sand)
 late down [ Sand | no Terrain no Player no Sand ] -> [ | Sand ]
 
-(Clear the dig-animation lock at end of turn so the next 'again'
+(Clear animation locks at end of turn so the next 'again'
  pass can advance the counter by one step.)
 late [ DigLock ] -> [ ]
+late [ BlockLock ] -> [ ]
 
 
 ==============
@@ -228,32 +266,62 @@ some Player on Door
 LEVELS
 ======
 
-message Level 1 - walk
+message 1: swipe to walk
 
 ......
 .dt..}
 tttttt
 
-message Level 2 - dig
+message 2: tap to dig
 
 ..t...
 .dt..}
 tttttt
 
-message Level 3 - diig
+message 3: diig
 
 ..tt..
 .dtt.}
 tttttt
 
-message Level 4 - pile
+message 4: pile
 
 t.n.}.
 tdtt..
 tttttt
 
-message Level 5 - stair
+message 5: stair
 
 ..t..}
 .dt.t.
+tttttt
+
+message 6: mole hill
+
+..}...
+..t..t
+.dt.tt
+tttttt
+
+message 7: mtn
+
+..}...
+..t..t
+.dt.tt
+tttttt
+
+message 8: mountain
+
+..}...
+..t...
+..t..t
+.dt.tt
+tttttt
+
+message 9: hold to undo
+
+..}...
+..n..n
+..t..t
+.dt.tt
 tttttt

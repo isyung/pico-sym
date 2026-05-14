@@ -70,6 +70,8 @@ Mobile.debugDot = function (event) {
     // Matched to SWIPE_THRESHOLD so any motion past tap-territory becomes
     // a swipe with no dead zone in between.
     var TAP_MOVE_THRESHOLD = 4;
+    // Milliseconds to hold a still finger before firing undo.
+    var HOLD_FOR_UNDO_MS = 500;
     // Time in milliseconds to repeat a motion if still holding down,
     // ... and not specified in state.metadata.key_repeat_interval.
     var DEFAULT_REPEAT_INTERVAL = 150;
@@ -156,6 +158,18 @@ Mobile.debugDot = function (event) {
 
         this.firstPos.x = event.touches[0].clientX;
         this.firstPos.y = event.touches[0].clientY;
+
+        if (this.holdTimer) {
+            clearTimeout(this.holdTimer);
+        }
+        var self = this;
+        this.holdTimer = setTimeout(function () {
+            if (self.isTouching && !self.movedSinceStart && !self.gestured) {
+                self.emitKeydown('undo');
+                self.gestured = true;
+            }
+            self.holdTimer = null;
+        }, HOLD_FOR_UNDO_MS);
     };
 
     proto.onTouchEnd = function (event) {
@@ -186,6 +200,11 @@ Mobile.debugDot = function (event) {
             this.isTouching = false;
             this.endRepeatWatcher();
         }
+
+        if (this.holdTimer) {
+            clearTimeout(this.holdTimer);
+            this.holdTimer = null;
+        }
     };
 
     proto.onTouchMove = function (event) {
@@ -202,6 +221,10 @@ Mobile.debugDot = function (event) {
             var dyAbs = Math.abs(curY - this.firstPos.y);
             if (Math.max(dxAbs, dyAbs) > TAP_MOVE_THRESHOLD) {
                 this.movedSinceStart = true;
+                if (this.holdTimer) {
+                    clearTimeout(this.holdTimer);
+                    this.holdTimer = null;
+                }
             }
         }
         if (this.isSuccessfulSwipe()) {
