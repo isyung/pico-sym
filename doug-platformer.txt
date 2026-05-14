@@ -323,8 +323,25 @@ n.n..n
 nd.nnn
 tttttt
 
-message 9: sand
+message 9: antmountain
 
+..}..nn
+..n..nn
+n.n..nn
+n.n..nn
+nd.nnnn
+ttttttt
+
+message 10: sand
+
+.....tt
 n.t..tt
+nd..n.}
+ttttttt
+
+message 11: ampersand
+
+.....tt
+n.t..tn
 nd..n.}
 ttttttt
