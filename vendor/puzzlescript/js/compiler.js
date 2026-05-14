@@ -143,18 +143,27 @@ function generateExtraMembers(state) {
         }
         if (o.spritematrix.length === 0) {
             o.spritematrix = [
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0]
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0]
             ];
         } else {
-            if (o.spritematrix.length !== 5 || o.spritematrix[0].length !== 5 || o.spritematrix[1].length !== 5 || o.spritematrix[2].length !== 5 || o.spritematrix[3].length !== 5 || o.spritematrix[4].length !== 5) {
-                logWarning("Sprite graphics must be 5 wide and 5 high exactly.", o.lineNumber);
+            let badSize = o.spritematrix.length !== 8;
+            if (!badSize) {
+                for (let r = 0; r < 8; r++) {
+                    if (o.spritematrix[r].length !== 8) { badSize = true; break; }
+                }
+            }
+            if (badSize) {
+                logWarning("Sprite graphics must be 8 wide and 8 high exactly.", o.lineNumber);
             }
             o.spritematrix = generateSpriteMatrix(o.spritematrix);
-        }    
+        }
 
         let mask = blankMask.concat([]);
         mask[o.layer] = o.id;

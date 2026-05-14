@@ -1,6 +1,7 @@
 title sandbox
 author Doug
 run_rules_on_level_start
+key_repeat_interval 0.25
 
 ========
 OBJECTS
@@ -10,19 +11,59 @@ Background
 BLUE
 
 Terrain
-BROWN
+BROWN DARKBROWN
+00000000
+00100100
+01010010
+00000000
+10001000
+00000000
+00010001
+00100010
 
 Sand
-YELLOW
+YELLOW ORANGE
+01000010
+00010100
+00000000
+00001000
+01000000
+00010001
+00000100
+00100000
 
 PlayerR
-PINK
+PINK RED WHITE BLACK
+........
+........
+........
+........
+........
+........
+........
+........
 
 PlayerL
-PINK
+PINK RED WHITE BLACK
+........
+........
+........
+........
+........
+........
+........
+........
 
 Door
-DARKGRAY
+DARKGRAY LIGHTGRAY
+01111110
+10000001
+10000001
+10000001
+10000001
+10000001
+10000001
+01111110
 
 ClimbR
 TRANSPARENT
@@ -45,6 +86,7 @@ d = PlayerR
 [ = Door
 ] = Door
 Player = PlayerR or PlayerL
+Diggable = Terrain or Sand
 
 
 =======
@@ -75,6 +117,9 @@ RULES
 [ up Player ] -> [ Player ]
 [ down Player ] -> [ Player ]
 
+(Push: walking into sand shoves it one tile in the same direction)
+horizontal [ > Player | Sand ] -> [ > Player | > Sand ]
+
 (Step up to the right - climb a one-tile ledge)
 right [ > PlayerR | Terrain ] -> [ ClimbR PlayerR | Terrain ]
 up [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | ClimbR PlayerR ]
@@ -87,9 +132,10 @@ up [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | ClimbL PlayerL ]
 left [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | PlayerL ]
 [ ClimbL ] -> [ ]
 
-(Dig: X turns the terrain in front of Doug into sand)
-right [ action PlayerR | Terrain ] -> [ PlayerR | Sand ]
-left [ action PlayerL | Terrain ] -> [ PlayerL | Sand ]
+(Dig: action button. Terrain or Sand in front becomes Background;
+ a Sand drops into the empty cell behind Doug. Requires empty behind.)
+right [ Background | action PlayerR | Diggable ] -> [ Sand | PlayerR | Background ]
+left  [ Background | action PlayerL | Diggable ] -> [ Sand | PlayerL | Background ]
 
 (Gravity for Doug)
 late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]

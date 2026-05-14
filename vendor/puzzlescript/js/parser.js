@@ -578,13 +578,13 @@ let codeMirrorFn = function () {
                     let o = state.objects[state.objects_candname];
 
                     spritematrix[spritematrix.length - 1] += ch;
-                    if (spritematrix[spritematrix.length - 1].length > 5) {
-                        logWarning('Sprites must be 5 wide and 5 high.', state.lineNumber);
+                    if (spritematrix[spritematrix.length - 1].length > 8) {
+                        logWarning('Sprites must be 8 wide and 8 high.', state.lineNumber);
                         stream.match(reg_notcommentstart, true);
                         return null;
                     }
                     o.spritematrix = state.objects_spritematrix;
-                    if (spritematrix.length === 5 && spritematrix[spritematrix.length - 1].length === 5) {
+                    if (spritematrix.length === 8 && spritematrix[spritematrix.length - 1].length === 8) {
                         state.objects_section = 0;
                     }
 
