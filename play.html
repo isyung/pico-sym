@@ -158,6 +158,52 @@ function fallbackCopy(text) {
   document.body.removeChild(ta);
 }
 
+// Auto-pad short level rows with '.' so authors can write uneven rows
+// and the engine still sees rectangular levels. Scans the LEVELS section,
+// groups consecutive level rows separated by blank lines / message lines,
+// pads each group to its widest row.
+function padLevels(src) {
+  var lines = src.split("\n");
+  var levelsStart = -1;
+  for (var i = 0; i < lines.length; i++) {
+    if (/^\s*LEVELS\s*$/i.test(lines[i])) {
+      levelsStart = i + 1;
+      while (levelsStart < lines.length && /^\s*=+\s*$/.test(lines[levelsStart])) {
+        levelsStart++;
+      }
+      break;
+    }
+  }
+  if (levelsStart === -1) return src;
+
+  var pending = [];
+  function flush() {
+    if (pending.length === 0) return;
+    var max = 0;
+    for (var k = 0; k < pending.length; k++) {
+      if (pending[k].content.length > max) max = pending[k].content.length;
+    }
+    for (var k = 0; k < pending.length; k++) {
+      var p = pending[k];
+      if (p.content.length < max) {
+        lines[p.idx] = p.content + new Array(max - p.content.length + 1).join(".");
+      }
+    }
+    pending = [];
+  }
+  for (var i = levelsStart; i < lines.length; i++) {
+    var line = lines[i];
+    var trimmed = line.trim();
+    if (trimmed === "" || /^message\b/i.test(trimmed) || /^\(.*\)\s*$/.test(trimmed)) {
+      flush();
+    } else {
+      pending.push({ idx: i, content: line });
+    }
+  }
+  flush();
+  return lines.join("\n");
+}
+
 function hardReset(reload) {
   // PuzzleScript stores progress under document.URL and document.URL + '_checkpoint'.
   // Clearing both forces a fresh start at level 0 next load.
@@ -200,6 +246,7 @@ window.addEventListener("load", function () {
       return r.text();
     })
     .then(function (code) {
+      code = padLevels(code);
       compile(["restart"], code);
       if (typeof state !== "undefined" && state.metadata && state.metadata.title) {
         document.getElementById("gametitle").textContent = state.metadata.title;
