@@ -228,31 +228,31 @@ some Player on Door
 LEVELS
 ======
 
-message Level 1 - walk and step up
+message Level 1 - walk
 
 ......
 .dt..}
 tttttt
 
-message Level 2 - dig the wall
+message Level 2 - dig
 
 ..t...
 .dt..}
 tttttt
 
-message Level 3 - dig both ceilinged walls
+message Level 3 - diig
 
 ..tt..
 .dtt.}
 tttttt
 
-message Level 4 - dig first then climb second
+message Level 4 - pile
 
-t..n..
-tdtt.}
+t.n.}.
+tdtt..
 tttttt
 
-message Level 5 - top exit
+message Level 5 - stair
 
 ..t..}
 .dt.t.
