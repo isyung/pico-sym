@@ -70,8 +70,6 @@ Mobile.debugDot = function (event) {
     // Matched to SWIPE_THRESHOLD so any motion past tap-territory becomes
     // a swipe with no dead zone in between.
     var TAP_MOVE_THRESHOLD = 4;
-    // Milliseconds to hold a still finger before firing undo.
-    var HOLD_FOR_UNDO_MS = 500;
     // Time in milliseconds to repeat a motion if still holding down,
     // ... and not specified in state.metadata.key_repeat_interval.
     var DEFAULT_REPEAT_INTERVAL = 150;
@@ -133,6 +131,13 @@ Mobile.debugDot = function (event) {
     /** Event Handlers **/
 
     proto.onTouchStart = function (event) {
+        // Track max finger count across the whole touch session (even on
+        // subsequent fingers that land after the first), so a still 2-finger
+        // tap can be detected at end-of-touch.
+        if (event.touches.length > (this.maxTouchCount || 0)) {
+            this.maxTouchCount = event.touches.length;
+        }
+
         if (this.isTouching) {
             return;
         }
@@ -159,17 +164,9 @@ Mobile.debugDot = function (event) {
         this.firstPos.x = event.touches[0].clientX;
         this.firstPos.y = event.touches[0].clientY;
 
-        if (this.holdTimer) {
-            clearTimeout(this.holdTimer);
-        }
-        var self = this;
-        this.holdTimer = setTimeout(function () {
-            if (self.isTouching && !self.movedSinceStart && !self.gestured) {
-                self.emitKeydown('undo');
-                self.gestured = true;
-            }
-            self.holdTimer = null;
-        }, HOLD_FOR_UNDO_MS);
+        // Track the max finger count seen during this touch so a tap-release
+        // can fire either action (1 finger) or menu (2+ fingers).
+        this.maxTouchCount = event.touches.length;
     };
 
     proto.onTouchEnd = function (event) {
@@ -184,7 +181,13 @@ Mobile.debugDot = function (event) {
         if (event.touches.length === 0 && event.target.id !== "unMuteButton" && event.target.id !== "muteButton") {
             if (!this.gestured) {
                 if (!this.movedSinceStart) {
-                    this.handleTap();
+                    // Still-finger lift = tap. 2+ fingers down at any point
+                    // during the touch -> open menu. Otherwise -> action.
+                    if (this.maxTouchCount > 1) {
+                        this.toggleMenu();
+                    } else {
+                        this.handleTap();
+                    }
                 } else if (this.swipeDirection !== undefined) {
                     // Finger moved past tap-threshold but lifted before the
                     // swipe-distance fire trigger. Commit the swipe now so
@@ -200,11 +203,6 @@ Mobile.debugDot = function (event) {
             this.isTouching = false;
             this.endRepeatWatcher();
         }
-
-        if (this.holdTimer) {
-            clearTimeout(this.holdTimer);
-            this.holdTimer = null;
-        }
     };
 
     proto.onTouchMove = function (event) {
@@ -214,6 +212,9 @@ Mobile.debugDot = function (event) {
         if (levelEditorOpened) {
             return;
         }
+        if (event.touches.length > this.maxTouchCount) {
+            this.maxTouchCount = event.touches.length;
+        }
         if (!this.movedSinceStart && event.touches.length > 0) {
             var curX = event.touches[0].clientX;
             var curY = event.touches[0].clientY;
@@ -221,10 +222,6 @@ Mobile.debugDot = function (event) {
             var dyAbs = Math.abs(curY - this.firstPos.y);
             if (Math.max(dxAbs, dyAbs) > TAP_MOVE_THRESHOLD) {
                 this.movedSinceStart = true;
-                if (this.holdTimer) {
-                    clearTimeout(this.holdTimer);
-                    this.holdTimer = null;
-                }
             }
         }
         if (this.isSuccessfulSwipe()) {
