@@ -133,9 +133,11 @@ left [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | PlayerL ]
 [ ClimbL ] -> [ ]
 
 (Dig: action button. Terrain or Sand in front becomes Background;
- a Sand drops into the empty cell behind Doug. Requires empty behind.)
-right [ Background | action PlayerR | Diggable ] -> [ Sand | PlayerR | Background ]
-left  [ Background | action PlayerL | Diggable ] -> [ Sand | PlayerL | Background ]
+ a Sand drops into the empty cell behind Doug. Requires empty behind.
+ We check absence of solids instead of asserting Background, so the
+ rule never removes Background from the dig-behind cell.)
+right [ no Terrain no Sand no Player | action PlayerR | Diggable ] -> [ Sand | PlayerR | ]
+left  [ no Terrain no Sand no Player | action PlayerL | Diggable ] -> [ Sand | PlayerL | ]
 
 (Gravity for Doug)
 late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]
