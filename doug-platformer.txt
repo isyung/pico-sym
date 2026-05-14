@@ -94,6 +94,12 @@ TRANSPARENT
 ClimbL
 TRANSPARENT
 
+ClimbedR
+TRANSPARENT
+
+ClimbedL
+TRANSPARENT
+
 DigT3
 TRANSPARENT
 
@@ -164,6 +170,8 @@ Door
 Terrain, Sand, PlayerR, PlayerL, PlayerR_Dig, PlayerL_Dig
 ClimbR
 ClimbL
+ClimbedR
+ClimbedL
 DigT3, DigT2, DigT1, DigT0
 DigLock
 BlockT3, BlockT2, BlockT1, BlockT0
@@ -199,19 +207,23 @@ horizontal [ > Player | Sand ] -> [ > Player | > Sand ]
 
 (Step up to the right - climb a one-tile ledge of Terrain or Sand.
  If the cell above the wall is Sand AND the cell beyond it is clear,
- Doug shoves that sand sideways and slides into its old position.)
+ Doug shoves that sand sideways and slides into its old position.
+ ClimbR -> ClimbedR after the lift so the up-rule can't re-match
+ and let Doug climb a second cell.)
 right [ > PlayerR | Solid ] -> [ ClimbR PlayerR | Solid ]
-up [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | ClimbR PlayerR ]
-right [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | PlayerR ]
-right [ ClimbR PlayerR | Sand | no Terrain no Sand no Player ] -> [ | PlayerR | Sand ]
+up [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | ClimbedR PlayerR ]
+right [ ClimbedR PlayerR | no Terrain no PlayerR no Sand ] -> [ | PlayerR ]
+right [ ClimbedR PlayerR | Sand | no Terrain no Sand no Player ] -> [ | PlayerR | Sand ]
 [ ClimbR ] -> [ ]
+[ ClimbedR ] -> [ ]
 
 (Step up to the left - same cascade mirrored)
 left [ > PlayerL | Solid ] -> [ ClimbL PlayerL | Solid ]
-up [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | ClimbL PlayerL ]
-left [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | PlayerL ]
-left [ ClimbL PlayerL | Sand | no Terrain no Sand no Player ] -> [ | PlayerL | Sand ]
+up [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | ClimbedL PlayerL ]
+left [ ClimbedL PlayerL | no Terrain no PlayerL no Sand ] -> [ | PlayerL ]
+left [ ClimbedL PlayerL | Sand | no Terrain no Sand no Player ] -> [ | PlayerL | Sand ]
 [ ClimbL ] -> [ ]
+[ ClimbedL ] -> [ ]
 
 (Dig: action button. Terrain or Sand in front becomes Background;
  a Sand drops into the empty cell behind Doug. Doug switches into
