@@ -629,8 +629,8 @@ function canvasResize(displaylevel) {
     cellwidth = canvas.width / screenwidth;
     cellheight = canvas.height / screenheight;
 
-    var w = 5;//sprites[1].dat.length;
-    var h = 5;//sprites[1].dat[0].length;
+    var w = 8;//patched: sprites are 8x8, not the vanilla 5x5
+    var h = 8;
 
     if (textMode) {
         w = 5 + 1;
