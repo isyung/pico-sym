@@ -66,6 +66,20 @@ a { color: lightblue; }
   top: 3.5em; bottom: 3em;
   touch-action: none;
 }
+#resetBtn {
+  position: absolute;
+  right: 0.5em; bottom: 0.5em;
+  width: 2.5em; height: 2.5em;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.4);
+  color: white;
+  font-family: inherit;
+  font-size: 1.2em;
+  cursor: pointer;
+  z-index: 10;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
 </style>
 </head>
 <body>
@@ -74,6 +88,7 @@ a { color: lightblue; }
   <canvas id="gameCanvas"></canvas>
 </div>
 <div class="footer"><span id="errormessage"></span></div>
+<button id="resetBtn" title="Clear saved progress and reload">&#x21BA;</button>
 
 <script src="./vendor/puzzlescript/js/storagewrapper.js"></script>
 <script src="./vendor/puzzlescript/js/bitvec.js"></script>
@@ -99,7 +114,28 @@ function displayError(message) {
   document.getElementById("errormessage").innerHTML = "ERROR " + message + "<br>";
 }
 
+function hardReset(reload) {
+  // PuzzleScript stores progress under document.URL and document.URL + '_checkpoint'.
+  // Clearing both forces a fresh start at level 0 next load.
+  try {
+    localStorage.removeItem(document.URL);
+    localStorage.removeItem(document.URL + "_checkpoint");
+  } catch (e) { /* ignore */ }
+  if (reload) {
+    // Drop the ?reset query string so reloading later doesn't keep resetting.
+    location.replace(location.pathname);
+  }
+}
+
+if (location.search.indexOf("reset") !== -1) {
+  hardReset(false);
+}
+
 window.addEventListener("load", function () {
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    hardReset(true);
+  });
+
   fetch("./doug-platformer.txt?ts=" + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error("Could not fetch game source (" + r.status + ")");
