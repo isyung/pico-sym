@@ -101,9 +101,6 @@ TRANSPARENT
 AnimT1
 TRANSPARENT
 
-AnimT0
-TRANSPARENT
-
 AnimLock
 TRANSPARENT
 
@@ -136,7 +133,7 @@ d = PlayerR
 Player = PlayerR or PlayerL or Smear
 Diggable = Terrain or Sand
 Solid = Terrain or Sand
-AnimTick = AnimT4 or AnimT3 or AnimT2 or AnimT1 or AnimT0
+AnimTick = AnimT4 or AnimT3 or AnimT2 or AnimT1
 
 
 =======
@@ -155,7 +152,7 @@ ClimbR
 ClimbL
 ClimbedR
 ClimbedL
-AnimT4, AnimT3, AnimT2, AnimT1, AnimT0
+AnimT4, AnimT3, AnimT2, AnimT1
 AnimLock
 RightFlag, LeftFlag
 TryR, TryL
@@ -225,22 +222,19 @@ left  [ no Terrain no Sand no Player | action PlayerL | Diggable ] -> [ Sand | S
 right [ no Sand | action PlayerR | no Diggable ] -> [ | Smear AnimT4 RightFlag | ] again
 left  [ no Sand | action PlayerL | no Diggable ] -> [ | Smear AnimT4 LeftFlag | ] again
 
-(Animation cascade - 4 visible frames then revert:
+(Animation cascade - 3 visible frames then revert:
    T4 -> T3 : kick (sprite stays Smear, render frame 1 = Smear)
    T3 -> T2 : Smear becomes opposite facing (render frame 2 = Opp)
    T2 -> T1 : keep opposite (render frame 3 = Opp)
-   T1 -> T0 : opposite becomes Smear (render frame 4 = Smear)
-   T0 -> revert to original facing (no again - chain ends)
+   T1 -> revert to original facing (no again - chain ends)
  AnimLock prevents the chain from cascading within a single turn;
  the late rule strips it so the next 'again' pass advances one step.)
 [ AnimT4 no AnimLock ] -> [ AnimT3 AnimLock ] again
 [ AnimT3 Smear RightFlag no AnimLock ] -> [ AnimT2 PlayerL RightFlag AnimLock ] again
 [ AnimT3 Smear LeftFlag  no AnimLock ] -> [ AnimT2 PlayerR LeftFlag  AnimLock ] again
 [ AnimT2 no AnimLock ] -> [ AnimT1 AnimLock ] again
-[ AnimT1 PlayerL RightFlag no AnimLock ] -> [ AnimT0 Smear RightFlag AnimLock ] again
-[ AnimT1 PlayerR LeftFlag  no AnimLock ] -> [ AnimT0 Smear LeftFlag  AnimLock ] again
-[ AnimT0 Smear RightFlag no AnimLock ] -> [ PlayerR ]
-[ AnimT0 Smear LeftFlag  no AnimLock ] -> [ PlayerL ]
+[ AnimT1 PlayerL RightFlag no AnimLock ] -> [ PlayerR ]
+[ AnimT1 PlayerR LeftFlag  no AnimLock ] -> [ PlayerL ]
 
 (Gravity for Doug - skipped while an animation is running so the
  sprite doesn't drift away from its accompanying AnimT* marker.)
