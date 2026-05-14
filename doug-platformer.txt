@@ -136,6 +136,12 @@ TRANSPARENT
 LeftFlag
 TRANSPARENT
 
+TryR
+TRANSPARENT
+
+TryL
+TRANSPARENT
+
 
 =======
 LEGEND
@@ -177,6 +183,7 @@ DigLock
 BlockT3, BlockT2, BlockT1, BlockT0
 BlockLock
 RightFlag, LeftFlag
+TryR, TryL
 
 
 ======
@@ -197,6 +204,13 @@ RULES
 (Update facing when input direction reverses on the normal pose)
 [ left PlayerR ] -> [ left PlayerL ]
 [ right PlayerL ] -> [ right PlayerR ]
+
+(Walk-intent markers - placed once at Doug's cell so we can detect
+ a fully-blocked walk after movement resolves. If Doug moved, the
+ marker is left behind at the old cell; if he didn't, the marker
+ is still on top of him and the late rule fires the block animation.)
+[ right PlayerR no TryR ] -> [ right PlayerR TryR ]
+[ left  PlayerL no TryL ] -> [ left  PlayerL TryL ]
 
 (Cancel vertical input - Doug only moves horizontally)
 [ up Player ] -> [ Player ]
@@ -260,6 +274,16 @@ late down [ Player | no Terrain no Player no Sand ] -> [ | Player ]
 
 (Gravity for sand)
 late down [ Sand | no Terrain no Player no Sand ] -> [ | Sand ]
+
+(Failed walk: TryR/TryL marker still on Doug means he did not
+ move - fire the same opposite-facing animation as a failed dig.
+ Fires AFTER gravity so a walk-off-ledge counts as success.)
+late [ TryR PlayerR ] -> [ PlayerL RightFlag BlockT3 ] again
+late [ TryL PlayerL ] -> [ PlayerR LeftFlag BlockT3 ] again
+
+(Clean up orphan walk-intent markers - Doug moved past them.)
+late [ TryR ] -> [ ]
+late [ TryL ] -> [ ]
 
 (Clear animation locks at end of turn so the next 'again'
  pass can advance the counter by one step.)
