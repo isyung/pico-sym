@@ -325,8 +325,8 @@ tttttt
 
 message 9: antmountain
 
-..}..nn
-..n..nn
+n.}..nn
+n.n..nn
 n.n..nn
 n.n..nn
 nd.nnnn
