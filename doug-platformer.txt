@@ -142,6 +142,9 @@ TRANSPARENT
 TryL
 TRANSPARENT
 
+Pushed
+TRANSPARENT
+
 
 =======
 LEGEND
@@ -184,6 +187,7 @@ BlockT3, BlockT2, BlockT1, BlockT0
 BlockLock
 RightFlag, LeftFlag
 TryR, TryL
+Pushed
 
 
 ======
@@ -216,15 +220,19 @@ RULES
 [ up Player ] -> [ Player ]
 [ down Player ] -> [ Player ]
 
-(Push: walking into sand shoves it one tile in the same direction)
-horizontal [ > Player | Sand ] -> [ > Player | > Sand ]
+(Push: walking into sand shoves it one tile in the same direction.
+ Drops a 'Pushed' marker on Doug so the climb rule won't ALSO fire
+ and lift him into a sand-step-up cascade. If push fails (sand
+ blocked, atomic rollback), the marker is rolled back too and the
+ climb rule below can still fire for sand-step-up.)
+horizontal [ > Player | Sand ] -> [ > Player Pushed | > Sand ]
 
 (Step up to the right - climb a one-tile ledge of Terrain or Sand.
  If the cell above the wall is Sand AND the cell beyond it is clear,
  Doug shoves that sand sideways and slides into its old position.
  ClimbR -> ClimbedR after the lift so the up-rule can't re-match
  and let Doug climb a second cell.)
-right [ > PlayerR | Solid ] -> [ ClimbR PlayerR | Solid ]
+right [ > PlayerR no Pushed | Solid ] -> [ ClimbR PlayerR | Solid ]
 up [ ClimbR PlayerR | no Terrain no PlayerR no Sand ] -> [ | ClimbedR PlayerR ]
 right [ ClimbedR PlayerR | no Terrain no PlayerR no Sand ] -> [ | PlayerR ]
 right [ ClimbedR PlayerR | Sand | no Terrain no Sand no Player ] -> [ | PlayerR | Sand ]
@@ -232,7 +240,7 @@ right [ ClimbedR PlayerR | Sand | no Terrain no Sand no Player ] -> [ | PlayerR 
 [ ClimbedR ] -> [ ]
 
 (Step up to the left - same cascade mirrored)
-left [ > PlayerL | Solid ] -> [ ClimbL PlayerL | Solid ]
+left [ > PlayerL no Pushed | Solid ] -> [ ClimbL PlayerL | Solid ]
 up [ ClimbL PlayerL | no Terrain no PlayerL no Sand ] -> [ | ClimbedL PlayerL ]
 left [ ClimbedL PlayerL | no Terrain no PlayerL no Sand ] -> [ | PlayerL ]
 left [ ClimbedL PlayerL | Sand | no Terrain no Sand no Player ] -> [ | PlayerL | Sand ]
@@ -286,6 +294,7 @@ late [ TryL PlayerL ] -> [ PlayerR LeftFlag BlockT3 ] again
 (Clean up orphan walk-intent markers - Doug moved past them.)
 late [ TryR ] -> [ ]
 late [ TryL ] -> [ ]
+late [ Pushed ] -> [ ]
 
 (Clear animation locks at end of turn so the next 'again'
  pass can advance the counter by one step.)
