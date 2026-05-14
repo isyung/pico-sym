@@ -13,18 +13,18 @@ function stripTags(str) {
 	return result;
 }
 
-function consolePrint(linenumber,inspect_ID){
-/*	let errorText = document.getElementById("errormessage");
-	
-	str=stripTags(str);
-	errorText.innerHTML+=str+"<br>";*/
+function consolePrint(str,urgent){
+	let errorText = document.getElementById("errormessage");
+	if (!errorText) return;
+	str = stripTags(String(str));
+	errorText.innerHTML += str + "<br>";
 }
 
 function consolePrintFromRule(str,rule,urgent){
-/*	let errorText = document.getElementById("errormessage");
-	
-	str=stripTags(str);
-	errorText.innerHTML+=str+"<br>";*/
+	let errorText = document.getElementById("errormessage");
+	if (!errorText) return;
+	str = stripTags(String(str));
+	errorText.innerHTML += str + "<br>";
 }
 
 function consoleCacheDump(str){
