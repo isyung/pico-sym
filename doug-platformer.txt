@@ -218,12 +218,14 @@ RULES
 [ up Player ] -> [ Player ]
 [ down Player ] -> [ Player ]
 
-(Push: walking into sand shoves it one tile in the same direction.
- Drops a 'Pushed' marker on Doug so the climb rule won't ALSO fire
- and lift him into a sand-step-up cascade. If push fails (sand
- blocked, atomic rollback), the marker is rolled back too and the
- climb rule below can still fire for sand-step-up.)
-horizontal [ > Player | Sand ] -> [ > Player Pushed | > Sand ]
+(Push: walking into sand shoves it one tile. Three-cell pattern so
+ the rule only matches when the cell beyond the sand is actually
+ clear - that way push never fires on a failed push, and the
+ Pushed marker only appears on real pushes. Marker still gates
+ climb-detect so multi-stack push doesn't trigger sand-step-up.
+ The 'no Pushed' on the Player side prevents the rule from
+ chain-pushing into a second sand on the same turn.)
+horizontal [ > Player no Pushed | Sand | no Terrain no Sand no Player ] -> [ | Player Pushed | Sand ]
 
 (Step up to the right - climb a one-tile ledge of Terrain or Sand.
  If the cell above the wall is Sand AND the cell beyond it is clear,
