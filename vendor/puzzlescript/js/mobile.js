@@ -61,14 +61,15 @@ Mobile.debugDot = function (event) {
     'use strict';
 
     // Minimum range to begin looking at the swipe direction, in pixels
-    var SWIPE_THRESHOLD = 10;
+    var SWIPE_THRESHOLD = 4;
     // Distance in pixels required to complete a swipe gesture.
-    var SWIPE_DISTANCE = 50;
+    var SWIPE_DISTANCE = 8;
     // Time in milliseconds to complete the gesture.
     var SWIPE_TIMEOUT = 1000;
     // Pixels of movement that disqualify a touch from counting as a tap.
-    // Set low so any noticeable finger slide cancels the tap.
-    var TAP_MOVE_THRESHOLD = 6;
+    // Matched to SWIPE_THRESHOLD so any motion past tap-territory becomes
+    // a swipe with no dead zone in between.
+    var TAP_MOVE_THRESHOLD = 4;
     // Time in milliseconds to repeat a motion if still holding down,
     // ... and not specified in state.metadata.key_repeat_interval.
     var DEFAULT_REPEAT_INTERVAL = 150;
@@ -166,9 +167,16 @@ Mobile.debugDot = function (event) {
             // canceled the touchstart event.
             return;
         }
-        if (!this.gestured && !this.movedSinceStart) {
-            if (event.touches.length === 0 && event.target.id !== "unMuteButton" && event.target.id !== "muteButton") {
-                this.handleTap();
+        if (event.touches.length === 0 && event.target.id !== "unMuteButton" && event.target.id !== "muteButton") {
+            if (!this.gestured) {
+                if (!this.movedSinceStart) {
+                    this.handleTap();
+                } else if (this.swipeDirection !== undefined) {
+                    // Finger moved past tap-threshold but lifted before the
+                    // swipe-distance fire trigger. Commit the swipe now so
+                    // there is no dead zone between tap and swipe.
+                    this.handleSwipe(this.swipeDirection, this.touchCount || 1);
+                }
             }
         }
 
