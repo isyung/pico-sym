@@ -55,28 +55,6 @@ PINK RED WHITE BLACK
 00000000
 .000000.
 
-PlayerR_Hold
-PINK RED WHITE BLACK YELLOW
-.444444.
-04444440
-00001010
-00001010
-00000000
-00001110
-00000000
-.000000.
-
-PlayerL_Hold
-PINK RED WHITE BLACK YELLOW
-.444444.
-04444440
-01010000
-01010000
-00000000
-01110000
-00000000
-.000000.
-
 Smear
 PINK RED WHITE BLACK
 .000000.
@@ -144,6 +122,24 @@ TRANSPARENT
 Grab
 TRANSPARENT
 
+Held
+TRANSPARENT
+
+Holding
+TRANSPARENT
+
+Reach
+TRANSPARENT
+
+Lift
+TRANSPARENT
+
+EjectR
+TRANSPARENT
+
+EjectL
+TRANSPARENT
+
 
 =======
 LEGEND
@@ -155,13 +151,11 @@ n = Sand
 d = PlayerR
 { = Door
 } = Door
-Player = PlayerR or PlayerL or Smear or PlayerR_Hold or PlayerL_Hold
+Player = PlayerR or PlayerL or Smear
 Diggable = Terrain or Sand
 Solid = Terrain or Sand
 AnimTick = AnimT4 or AnimT3 or AnimT2 or AnimT1
 ClimbMarker = ClimbR or ClimbL or ClimbedR or ClimbedL
-DougR = PlayerR or PlayerR_Hold
-DougL = PlayerL or PlayerL_Hold
 
 
 =======
@@ -175,7 +169,7 @@ COLLISIONLAYERS
 
 Background
 Door
-Terrain, Sand, PlayerR, PlayerL, Smear, PlayerR_Hold, PlayerL_Hold
+Terrain, Sand, PlayerR, PlayerL, Smear
 ClimbR
 ClimbL
 ClimbedR
@@ -186,47 +180,68 @@ RightFlag, LeftFlag
 TryR, TryL
 Pushed
 Grab
+Held
+Holding, Reach, Lift
+EjectR, EjectL
 
 
 ======
 RULES
 ======
 
-(Update facing when input direction reverses - both poses)
+(Update facing when input direction reverses.)
 [ left PlayerR ] -> [ left PlayerL ]
 [ right PlayerL ] -> [ right PlayerR ]
-[ left PlayerR_Hold ] -> [ left PlayerL_Hold ]
-[ right PlayerL_Hold ] -> [ right PlayerR_Hold ]
 
 (Walk-intent markers - placed once at Doug's cell so we can detect
  a fully-blocked walk after movement resolves. If Doug moved, the
  marker is left behind at the old cell; if he didn't, the marker
  is still on top of him and the late rule fires the block animation.
- Only the empty-handed poses get this: a holding Doug must NOT
- animate on a bump, or the Smear pose would drop his sand.)
-[ right PlayerR no TryR ] -> [ right PlayerR TryR ]
-[ left  PlayerL no TryL ] -> [ left  PlayerL TryL ]
+ A holding Doug is excluded: he must not play the bump animation
+ while carrying.)
+[ right PlayerR no TryR no Holding ] -> [ right PlayerR TryR ]
+[ left  PlayerL no TryL no Holding ] -> [ left  PlayerL TryL ]
 
-(Lift: press up to pick the Sand in front onto Doug's head, turning
- him into the holding pose. Grab marks the candidate sand; the
- buried-check rule un-marks it if a Solid sits directly on top, so
- a buried sand - e.g. the bottom of a stack - cannot be lifted.)
-right [ up PlayerR | Sand ] -> [ PlayerR | Sand Grab ]
-left  [ up PlayerL | Sand ] -> [ PlayerL | Sand Grab ]
+(Lift: press up to pick the Sand in front and marry it to the cell
+ directly above Doug. Reach marks a Doug with a clear head cell;
+ Grab marks the candidate sand; the buried-check un-marks a sand
+ with a Solid directly on top, so a buried sand - e.g. the bottom
+ of a stack - cannot be lifted. The held Sand keeps a Held tag and
+ Doug keeps a Holding tag for the rest of the carry.)
+up [ up Player no Holding | no Solid no Player ] -> [ Player Reach | ]
+right [ Reach PlayerR | Sand ] -> [ Reach PlayerR | Sand Grab ]
+left  [ Reach PlayerL | Sand ] -> [ Reach PlayerL | Sand Grab ]
 up [ Sand Grab | Solid ] -> [ Sand | Solid ]
-right [ PlayerR | Sand Grab ] -> [ PlayerR_Hold | ]
-left  [ PlayerL | Sand Grab ] -> [ PlayerL_Hold | ]
+right [ Reach PlayerR | Sand Grab ] -> [ Lift PlayerR | ]
+left  [ Reach PlayerL | Sand Grab ] -> [ Lift PlayerL | ]
+up [ Lift Player | no Solid no Player ] -> [ Player Holding | Sand Held ]
+[ Reach ] -> [ ]
 [ Grab ] -> [ ]
+[ Lift ] -> [ ]
 
-(Place: press down to set the held Sand into the clear cell in
- front, reverting Doug to the empty-handed pose.)
-right [ down PlayerR_Hold | no Solid no Player ] -> [ PlayerR | Sand ]
-left  [ down PlayerL_Hold | no Solid no Player ] -> [ PlayerL | Sand ]
+(Place: press down to eject the held Sand into the cell in front of
+ it. If that cell is blocked the Eject marker is simply stripped and
+ the Sand stays held.)
+down [ Sand Held | down PlayerR ] -> [ Sand Held EjectR | PlayerR ]
+down [ Sand Held | down PlayerL ] -> [ Sand Held EjectL | PlayerL ]
+right [ Sand Held EjectR | no Solid no Player ] -> [ | Sand ]
+left  [ Sand Held EjectL | no Solid no Player ] -> [ | Sand ]
+[ EjectR ] -> [ ]
+[ EjectL ] -> [ ]
 
 (Cancel leftover vertical input - up/down that didn't result in a
  lift or place. Keeps Doug from floating up into the sky.)
 [ up Player ] -> [ Player ]
 [ down Player ] -> [ Player ]
+
+(Carry: copy Doug's walk direction onto the held Sand and onto both
+ marker tags so the whole stack - Sand, Held, Player, Holding -
+ travels together one cell above his head. A direction prefix only
+ moves the object right after it, so each of the four gets its own.
+ A turn that desyncs the stack is cancelled by the late guard rules,
+ so the Sand can never separate from Doug or pass through walls.)
+down [ Sand Held | right Player Holding ] -> [ right Sand right Held | right Player right Holding ]
+down [ Sand Held | left  Player Holding ] -> [ left  Sand left  Held | left  Player left  Holding ]
 
 (Push: walking into sand shoves it one tile. Three-cell pattern so
  the rule only matches when the cell beyond the sand is actually
@@ -241,18 +256,18 @@ horizontal [ > Player no Pushed | Sand | no Terrain no Sand no Player ] -> [ | P
  If the cell above the wall is Sand AND the cell beyond it is clear,
  Doug shoves that sand sideways and slides into its old position.
  ClimbR -> ClimbedR after the lift so the up-rule can't re-match
- and let Doug climb a second cell. DougR alias = empty-handed OR
- holding, so Doug climbs either way.)
-right [ > DougR no Pushed | Solid ] -> [ ClimbR DougR | Solid ]
-up [ ClimbR DougR | no Solid no Player ] -> [ | ClimbedR DougR ]
-right [ ClimbedR DougR | no Solid no Player ] -> [ | DougR ]
-right [ ClimbedR DougR | Sand | no Solid no Player ] -> [ | DougR | Sand ]
+ and let Doug climb a second cell. Disabled while holding - a
+ carrying climb is a separate cascade added later.)
+right [ > PlayerR no Pushed no Holding | Solid ] -> [ ClimbR PlayerR | Solid ]
+up [ ClimbR PlayerR | no Solid no Player ] -> [ | ClimbedR PlayerR ]
+right [ ClimbedR PlayerR | no Solid no Player ] -> [ | PlayerR ]
+right [ ClimbedR PlayerR | Sand | no Solid no Player ] -> [ | PlayerR | Sand ]
 
 (Step up to the left - same cascade mirrored)
-left [ > DougL no Pushed | Solid ] -> [ ClimbL DougL | Solid ]
-up [ ClimbL DougL | no Solid no Player ] -> [ | ClimbedL DougL ]
-left [ ClimbedL DougL | no Solid no Player ] -> [ | DougL ]
-left [ ClimbedL DougL | Sand | no Solid no Player ] -> [ | DougL | Sand ]
+left [ > PlayerL no Pushed no Holding | Solid ] -> [ ClimbL PlayerL | Solid ]
+up [ ClimbL PlayerL | no Solid no Player ] -> [ | ClimbedL PlayerL ]
+left [ ClimbedL PlayerL | no Solid no Player ] -> [ | PlayerL ]
+left [ ClimbedL PlayerL | Sand | no Solid no Player ] -> [ | PlayerL | Sand ]
 
 (Strip any leftover climb markers at the end of the climb cascade.
  Shared cleanup for both directions, both phases.)
@@ -287,11 +302,24 @@ left  [ no Sand | action PlayerL | no Diggable ] -> [ | Smear AnimT4 LeftFlag | 
 [ AnimT1 PlayerL RightFlag no AnimLock ] -> [ PlayerR ]
 [ AnimT1 PlayerR LeftFlag  no AnimLock ] -> [ PlayerL ]
 
-(Gravity for Doug - skipped while an animation is running so the
- sprite doesn't drift away from its accompanying AnimT* marker.)
-late down [ Player no AnimTick | no Terrain no Player no Sand ] -> [ | Player ]
+(Keep Doug's Holding tag honest: once the held Sand is gone - it was
+ ejected by a place - strip Holding so plain gravity treats him as
+ empty-handed again. Runs before gravity so the update is same-turn.)
+late down [ no Held | Holding Player ] -> [ | Player ]
 
-(Gravity for sand)
+(Married gravity: a holding Doug and his Sand fall together as one
+ unit. The whole stack - Sand, Held, Player, Holding - is relocated
+ so no tag is left behind. Runs before plain gravity so the pair
+ never splits mid-fall.)
+late down [ Held Sand | Player Holding no AnimTick | no Terrain no Player no Sand ] -> [ | Held Sand | Player Holding ]
+
+(Gravity for Doug - empty-handed only (no Holding); a holding Doug
+ falls via the married-gravity rule above. Skipped while an animation
+ is running so the sprite doesn't drift from its AnimT* marker.)
+late down [ Player no AnimTick no Holding | no Terrain no Player no Sand ] -> [ | Player ]
+
+(Gravity for sand - the held Sand is skipped automatically because
+ Doug, a Player, always sits directly beneath it.)
 late down [ Sand | no Terrain no Player no Sand ] -> [ | Sand ]
 
 (Failed walk: TryR/TryL marker still on Doug means he did not
@@ -308,6 +336,19 @@ late [ Pushed ] -> [ ]
 (Clear the animation lock at end of turn so the next 'again'
  pass can advance the counter by one step.)
 late [ AnimLock ] -> [ ]
+
+(Married-carry guards: if the carry stack ever breaks formation the
+ turn desynced - cancel it so the move is atomically reverted. This
+ is what makes carry all-or-nothing: Doug cannot walk, fall or be
+ pushed anywhere his Sand cannot follow. The free-floating marker
+ tags always move when nudged, so a blocked Sand or Player leaves a
+ tag stranded - exactly the condition these rules catch.
+   1. a Held tag no longer on its Sand
+   2. a Holding tag no longer on its Player
+   3. a held Sand with no Holding Player directly beneath it)
+late [ Held no Sand ] -> cancel
+late [ Holding no Player ] -> cancel
+late down [ Held Sand | no Holding ] -> cancel
 
 
 ==============
