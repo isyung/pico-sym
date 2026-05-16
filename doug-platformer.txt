@@ -55,6 +55,28 @@ PINK RED WHITE BLACK
 00000000
 .000000.
 
+PlayerR_Hold
+PINK RED WHITE BLACK YELLOW
+.444444.
+04444440
+00001010
+00001010
+00000000
+00001110
+00000000
+.000000.
+
+PlayerL_Hold
+PINK RED WHITE BLACK YELLOW
+.444444.
+04444440
+01010000
+01010000
+00000000
+01110000
+00000000
+.000000.
+
 Smear
 PINK RED WHITE BLACK
 .000000.
@@ -119,6 +141,9 @@ TRANSPARENT
 Pushed
 TRANSPARENT
 
+Grab
+TRANSPARENT
+
 
 =======
 LEGEND
@@ -130,11 +155,13 @@ n = Sand
 d = PlayerR
 { = Door
 } = Door
-Player = PlayerR or PlayerL or Smear
+Player = PlayerR or PlayerL or Smear or PlayerR_Hold or PlayerL_Hold
 Diggable = Terrain or Sand
 Solid = Terrain or Sand
 AnimTick = AnimT4 or AnimT3 or AnimT2 or AnimT1
 ClimbMarker = ClimbR or ClimbL or ClimbedR or ClimbedL
+DougR = PlayerR or PlayerR_Hold
+DougL = PlayerL or PlayerL_Hold
 
 
 =======
@@ -148,7 +175,7 @@ COLLISIONLAYERS
 
 Background
 Door
-Terrain, Sand, PlayerR, PlayerL, Smear
+Terrain, Sand, PlayerR, PlayerL, Smear, PlayerR_Hold, PlayerL_Hold
 ClimbR
 ClimbL
 ClimbedR
@@ -158,24 +185,46 @@ AnimLock
 RightFlag, LeftFlag
 TryR, TryL
 Pushed
+Grab
 
 
 ======
 RULES
 ======
 
-(Update facing when input direction reverses on the normal pose)
+(Update facing when input direction reverses - both poses)
 [ left PlayerR ] -> [ left PlayerL ]
 [ right PlayerL ] -> [ right PlayerR ]
+[ left PlayerR_Hold ] -> [ left PlayerL_Hold ]
+[ right PlayerL_Hold ] -> [ right PlayerR_Hold ]
 
 (Walk-intent markers - placed once at Doug's cell so we can detect
  a fully-blocked walk after movement resolves. If Doug moved, the
  marker is left behind at the old cell; if he didn't, the marker
- is still on top of him and the late rule fires the block animation.)
+ is still on top of him and the late rule fires the block animation.
+ Only the empty-handed poses get this: a holding Doug must NOT
+ animate on a bump, or the Smear pose would drop his sand.)
 [ right PlayerR no TryR ] -> [ right PlayerR TryR ]
 [ left  PlayerL no TryL ] -> [ left  PlayerL TryL ]
 
-(Cancel vertical input - Doug only moves horizontally)
+(Lift: press up to pick the Sand in front onto Doug's head, turning
+ him into the holding pose. Grab marks the candidate sand; the
+ buried-check rule un-marks it if a Solid sits directly on top, so
+ a buried sand - e.g. the bottom of a stack - cannot be lifted.)
+right [ up PlayerR | Sand ] -> [ PlayerR | Sand Grab ]
+left  [ up PlayerL | Sand ] -> [ PlayerL | Sand Grab ]
+up [ Sand Grab | Solid ] -> [ Sand | Solid ]
+right [ PlayerR | Sand Grab ] -> [ PlayerR_Hold | ]
+left  [ PlayerL | Sand Grab ] -> [ PlayerL_Hold | ]
+[ Grab ] -> [ ]
+
+(Place: press down to set the held Sand into the clear cell in
+ front, reverting Doug to the empty-handed pose.)
+right [ down PlayerR_Hold | no Solid no Player ] -> [ PlayerR | Sand ]
+left  [ down PlayerL_Hold | no Solid no Player ] -> [ PlayerL | Sand ]
+
+(Cancel leftover vertical input - up/down that didn't result in a
+ lift or place. Keeps Doug from floating up into the sky.)
 [ up Player ] -> [ Player ]
 [ down Player ] -> [ Player ]
 
@@ -192,17 +241,18 @@ horizontal [ > Player no Pushed | Sand | no Terrain no Sand no Player ] -> [ | P
  If the cell above the wall is Sand AND the cell beyond it is clear,
  Doug shoves that sand sideways and slides into its old position.
  ClimbR -> ClimbedR after the lift so the up-rule can't re-match
- and let Doug climb a second cell.)
-right [ > PlayerR no Pushed | Solid ] -> [ ClimbR PlayerR | Solid ]
-up [ ClimbR PlayerR | no Solid no Player ] -> [ | ClimbedR PlayerR ]
-right [ ClimbedR PlayerR | no Solid no Player ] -> [ | PlayerR ]
-right [ ClimbedR PlayerR | Sand | no Solid no Player ] -> [ | PlayerR | Sand ]
+ and let Doug climb a second cell. DougR alias = empty-handed OR
+ holding, so Doug climbs either way.)
+right [ > DougR no Pushed | Solid ] -> [ ClimbR DougR | Solid ]
+up [ ClimbR DougR | no Solid no Player ] -> [ | ClimbedR DougR ]
+right [ ClimbedR DougR | no Solid no Player ] -> [ | DougR ]
+right [ ClimbedR DougR | Sand | no Solid no Player ] -> [ | DougR | Sand ]
 
 (Step up to the left - same cascade mirrored)
-left [ > PlayerL no Pushed | Solid ] -> [ ClimbL PlayerL | Solid ]
-up [ ClimbL PlayerL | no Solid no Player ] -> [ | ClimbedL PlayerL ]
-left [ ClimbedL PlayerL | no Solid no Player ] -> [ | PlayerL ]
-left [ ClimbedL PlayerL | Sand | no Solid no Player ] -> [ | PlayerL | Sand ]
+left [ > DougL no Pushed | Solid ] -> [ ClimbL DougL | Solid ]
+up [ ClimbL DougL | no Solid no Player ] -> [ | ClimbedL DougL ]
+left [ ClimbedL DougL | no Solid no Player ] -> [ | DougL ]
+left [ ClimbedL DougL | Sand | no Solid no Player ] -> [ | DougL | Sand ]
 
 (Strip any leftover climb markers at the end of the climb cascade.
  Shared cleanup for both directions, both phases.)
