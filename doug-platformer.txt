@@ -278,15 +278,16 @@ left [ ClimbedL PlayerL | Sand | no Solid no Player ] -> [ | PlayerL | Sand ]
  RightFlag/LeftFlag remembering Doug's original facing.)
 
 (Dig success: action + Diggable in front + empty behind. Terrain
- or Sand in front clears; Sand drops into the empty cell behind.)
-right [ no Terrain no Sand no Player | action PlayerR | Diggable ] -> [ Sand | Smear AnimT4 RightFlag | ] again
-left  [ no Terrain no Sand no Player | action PlayerL | Diggable ] -> [ Sand | Smear AnimT4 LeftFlag | ] again
+ or Sand in front clears; Sand drops into the empty cell behind.
+ 'no Holding' - Doug cannot dig while carrying a sand.)
+right [ no Terrain no Sand no Player | action PlayerR no Holding | Diggable ] -> [ Sand | Smear AnimT4 RightFlag | ] again
+left  [ no Terrain no Sand no Player | action PlayerL no Holding | Diggable ] -> [ Sand | Smear AnimT4 LeftFlag | ] again
 
 (Dig blocked: action pressed but nothing diggable in front and no
  fresh sand behind. 'no Sand' silences the auto-repeat false-positive
  right after a successful dig.)
-right [ no Sand | action PlayerR | no Diggable ] -> [ | Smear AnimT4 RightFlag | ] again
-left  [ no Sand | action PlayerL | no Diggable ] -> [ | Smear AnimT4 LeftFlag | ] again
+right [ no Sand | action PlayerR no Holding | no Diggable ] -> [ | Smear AnimT4 RightFlag | ] again
+left  [ no Sand | action PlayerL no Holding | no Diggable ] -> [ | Smear AnimT4 LeftFlag | ] again
 
 (Animation cascade - 3 visible frames then revert:
    T4 -> T3 : kick (sprite stays Smear, render frame 1 = Smear)
